@@ -1,5 +1,6 @@
 package top.offsetmonkey538.fishingtime.mixin.client;
 
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -13,17 +14,27 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.io.IOException;
+import java.nio.file.Files;
+
+import static java.nio.file.StandardOpenOption.APPEND;
+import static top.offsetmonkey538.fishingtime.FishingTime.LOGGER;
+import static top.offsetmonkey538.fishingtime.FishingTimeClient.FISHING_TIME_FILE_PATH;
+
 @Mixin(FishingBobberEntity.class)
 public abstract class FishingBobberEntityMixin extends Entity {
     public FishingBobberEntityMixin(EntityType<?> type, World world) {
         super(type, world);
     }
 
-    @Shadow private boolean caughtFish;
+    @Shadow
+    private boolean caughtFish;
 
-    @Unique private boolean fishingTime$isFishing;
-    @Unique private long fishingTime$fishingTimeTicks;
-    
+    @Unique
+    private boolean fishingTime$isFishing;
+    @Unique
+    private long fishingTime$fishingTimeTicks;
+
     @Inject(
             method = "tick",
             at = @At(
@@ -57,7 +68,15 @@ public abstract class FishingBobberEntityMixin extends Entity {
 
         final double fishingTimeSeconds = (double) fishingTime$fishingTimeTicks / 20;
 
-        MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of("Fishing finished in " + fishingTime$fishingTimeTicks + " ticks or " + fishingTimeSeconds + " seconds."));
+        try {
+            Files.writeString(
+                    FISHING_TIME_FILE_PATH,
+                    "\n" + fishingTimeSeconds + " / " + fishingTime$fishingTimeTicks,
+                    APPEND
+            );
+        } catch (IOException e) {
+            LOGGER.error("Could not write to file '" + FISHING_TIME_FILE_PATH + "'!", e);
+        }
 
         fishingTime$fishingTimeTicks = 0;
         fishingTime$isFishing = false;
