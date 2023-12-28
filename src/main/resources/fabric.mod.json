@@ -3,7 +3,7 @@
 	"id": "fishing-time",
 	"version": "${modVersion}",
 	"name": "Fishing Time",
-	"description": "Measures the time it takes you to catch a fish.",
+	"description": "Measures the time it takes you to catch a fish and writes it to a file.",
 	"authors": [
 		"OffsetMonkey538"
 	],
