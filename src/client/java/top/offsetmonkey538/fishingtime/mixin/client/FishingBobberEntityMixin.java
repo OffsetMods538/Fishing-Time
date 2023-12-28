@@ -21,8 +21,8 @@ public abstract class FishingBobberEntityMixin extends Entity {
 
     @Shadow private boolean caughtFish;
 
-    @Unique
-    private long fishingTime$fishingStartTime;
+    @Unique private boolean fishingTime$isFishing;
+    @Unique private long fishingTime$fishingTimeTicks;
     
     @Inject(
             method = "tick",
@@ -33,7 +33,16 @@ public abstract class FishingBobberEntityMixin extends Entity {
     )
     private void storeFishingStartTime(CallbackInfo ci) {
         if (!getWorld().isClient) return;
-        fishingTime$fishingStartTime = System.nanoTime();
+        fishingTime$isFishing = true;
+        fishingTime$fishingTimeTicks = 0;
+    }
+
+    @Inject(
+            method = "tick",
+            at = @At("HEAD")
+    )
+    private void incrementFishingTime(CallbackInfo ci) {
+        if (fishingTime$isFishing) fishingTime$fishingTimeTicks++;
     }
 
     @Inject(
@@ -44,11 +53,13 @@ public abstract class FishingBobberEntityMixin extends Entity {
             )
     )
     private void finishMeasuringFishingTime(CallbackInfo ci) {
-        if (!caughtFish || !getWorld().isClient || fishingTime$fishingStartTime == 0) return;
+        if (!caughtFish || !getWorld().isClient || !fishingTime$isFishing) return;
 
-        final double fishingTimeSeconds = (double) (System.nanoTime() - fishingTime$fishingStartTime) / 1_000_000_000;
-        fishingTime$fishingStartTime = 0;
+        final double fishingTimeSeconds = (double) fishingTime$fishingTimeTicks / 20;
 
-        MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of("Fishing finished in " + fishingTimeSeconds + " seconds."));
+        MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of("Fishing finished in " + fishingTime$fishingTimeTicks + " ticks or " + fishingTimeSeconds + " seconds."));
+
+        fishingTime$fishingTimeTicks = 0;
+        fishingTime$isFishing = false;
     }
 }
