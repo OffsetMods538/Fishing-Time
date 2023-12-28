@@ -32,14 +32,6 @@ jobs:
         with:
           arguments: build
 
-      - name: Upload to Modrinth
-        uses: gradle/gradle-build-action@v2
-        env:
-          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
-          VERSION_NAME: ${{ github.event.release.name }}
-        with:
-          arguments: modrinth
-
       - name: Upload to GitHub
         uses: svenstaro/upload-release-action@v2
         with:

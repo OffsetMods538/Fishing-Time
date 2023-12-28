@@ -1,7 +1,6 @@
 plugins {
 	id 'fabric-loom' version '1.4-SNAPSHOT'
 	id 'io.github.dexman545.outlet' version '1.6.1'
-	id 'com.modrinth.minotaur' version '2.+'
 }
 
 sourceCompatibility = JavaVersion.VERSION_17
@@ -98,26 +97,3 @@ jar {
 		rename { "${it}_${project.archivesBaseName}" }
 	}
 }
-
-modrinth {
-	token = System.getenv("MODRINTH_TOKEN")
-	projectId = "fishing-time"
-	def customVersionName = System.getenv("VERSION_NAME")
-	if (customVersionName != null) versionName = customVersionName
-	versionNumber = "${project.version}"
-	versionType = "beta"
-	uploadFile = remapJar.archiveFile
-	//additionalFiles = [sourcesJar.archiveFile, javadocJar.archiveFile]
-	additionalFiles = [sourcesJar.archiveFile]
-	gameVersions = outlet.mcVersions()
-	syncBodyFrom = rootProject.file("README.md").text
-	def changelogFile = rootProject.file("CHANGELOG.md")
-	if (changelogFile.exists()) {
-		changelog = changelogFile.text
-	}
-
-	dependencies {
-	}
-}
-
-tasks.modrinth.dependsOn(tasks.modrinthSyncBody)
