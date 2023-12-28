@@ -1,0 +1,37 @@
+{
+	"schemaVersion": 1,
+	"id": "fishing-time",
+	"version": "${modVersion}",
+	"name": "Fishing Time",
+	"description": "Measures the time it takes you to catch a fish.",
+	"authors": [
+		"OffsetMonkey538"
+	],
+	"contact": {
+		"sources": "https://github.com/OffsetMods538/Fishing-Time",
+		"issues": "https://github.com/OffsetMods538/Fishing-Time/issues",
+		"homepage": "https://modrinth.com/mod/fishing-time"
+	},
+	"license": "MIT",
+	"icon": "assets/fishing-time/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"top.offsetmonkey538.fishingtime.FishingTime"
+		],
+		"client": [
+			"top.offsetmonkey538.fishingtime.FishingTimeClient"
+		]
+	},
+	"mixins": [
+		"fishing-time.mixins.json",
+		{
+			"config": "fishing-time.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"accessWidener": "fishing-time.accesswidener",
+	"depends": {
+		"minecraft": "${supportedMinecraftVersions}"
+	}
+}
