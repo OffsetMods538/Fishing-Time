@@ -32,6 +32,7 @@ public abstract class FishingBobberEntityMixin extends Entity {
             )
     )
     private void storeFishingStartTime(CallbackInfo ci) {
+        if (!getWorld().isClient) return;
         fishingTime$fishingStartTime = System.nanoTime();
     }
 
@@ -43,7 +44,7 @@ public abstract class FishingBobberEntityMixin extends Entity {
             )
     )
     private void finishMeasuringFishingTime(CallbackInfo ci) {
-        if (!caughtFish || fishingTime$fishingStartTime == 0) return;
+        if (!caughtFish || !getWorld().isClient || fishingTime$fishingStartTime == 0) return;
 
         final double fishingTimeSeconds = (double) (System.nanoTime() - fishingTime$fishingStartTime) / 1_000_000_000;
         fishingTime$fishingStartTime = 0;
