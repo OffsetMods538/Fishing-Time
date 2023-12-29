@@ -10,13 +10,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.io.IOException;
-import java.nio.file.Files;
-
-import static java.nio.file.StandardOpenOption.APPEND;
-import static top.offsetmonkey538.fishingtime.FishingTime.LOGGER;
-import static top.offsetmonkey538.fishingtime.FishingTimeClient.FISHING_TIME_FILE_PATH;
+import top.offsetmonkey538.fishingtime.FishingTimeClient;
 
 @Mixin(FishingBobberEntity.class)
 public abstract class FishingBobberEntityMixin extends Entity {
@@ -65,15 +59,8 @@ public abstract class FishingBobberEntityMixin extends Entity {
 
         final double fishingTimeSeconds = (double) fishingTime$fishingTimeTicks / 20;
 
-        try {
-            Files.writeString(
-                    FISHING_TIME_FILE_PATH,
-                    "\n" + fishingTimeSeconds + " / " + fishingTime$fishingTimeTicks,
-                    APPEND
-            );
-        } catch (IOException e) {
-            LOGGER.error("Could not write to file '" + FISHING_TIME_FILE_PATH + "'!", e);
-        }
+        FishingTimeClient.writeFishingTimeToFile(fishingTimeSeconds, fishingTime$fishingTimeTicks);
+        FishingTimeClient.writeFishingTimeToHud(fishingTimeSeconds);
 
         fishingTime$fishingTimeTicks = 0;
         fishingTime$isFishing = false;
