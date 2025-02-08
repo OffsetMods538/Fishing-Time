@@ -24,7 +24,11 @@ public abstract class FishingBobberEntityMixin extends Entity {
     @Unique
     private boolean fishingTime$isFishing;
     @Unique
-    private long fishingTime$fishingTimeTicks;
+    private int fishingTime$fishingTimeTicks;
+    @Unique
+    private double fishingTime$averageTimeSeconds;
+    @Unique
+    private int fishingTime$averageCount;
 
     @Inject(
             method = "tick",
@@ -33,7 +37,7 @@ public abstract class FishingBobberEntityMixin extends Entity {
                     target = "Lnet/minecraft/util/math/Vec3d;multiply(DDD)Lnet/minecraft/util/math/Vec3d;"
             )
     )
-    private void storeFishingStartTime(CallbackInfo ci) {
+    private void fishingTime$storeFishingStartTime(CallbackInfo ci) {
         if (!getWorld().isClient) return;
         fishingTime$isFishing = true;
         fishingTime$fishingTimeTicks = 0;
@@ -43,7 +47,7 @@ public abstract class FishingBobberEntityMixin extends Entity {
             method = "tick",
             at = @At("HEAD")
     )
-    private void incrementFishingTime(CallbackInfo ci) {
+    private void fishingTime$incrementFishingTime(CallbackInfo ci) {
         if (fishingTime$isFishing) fishingTime$fishingTimeTicks++;
     }
 
@@ -54,13 +58,10 @@ public abstract class FishingBobberEntityMixin extends Entity {
                     target = "Ljava/lang/Math;max(II)I"
             )
     )
-    private void finishMeasuringFishingTime(CallbackInfo ci) {
+    private void fishingTime$finishMeasuringFishingTime(CallbackInfo ci) {
         if (!caughtFish || !getWorld().isClient || !fishingTime$isFishing) return;
 
-        final double fishingTimeSeconds = (double) fishingTime$fishingTimeTicks / 20;
-
-        FishingTimeClient.writeFishingTimeToFile(fishingTimeSeconds, fishingTime$fishingTimeTicks);
-        FishingTimeClient.writeFishingTimeToHud(fishingTimeSeconds);
+        FishingTimeClient.fishingFinishedWithTime(fishingTime$fishingTimeTicks);
 
         fishingTime$fishingTimeTicks = 0;
         fishingTime$isFishing = false;

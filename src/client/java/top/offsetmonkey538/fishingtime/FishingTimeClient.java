@@ -16,13 +16,19 @@ import static top.offsetmonkey538.fishingtime.FishingTime.LOGGER;
 public class FishingTimeClient implements ClientModInitializer {
     public static final Path FISHING_TIME_FILE_PATH = FabricLoader.getInstance().getGameDir().resolve("fishing_time.txt");
 
+    private static int fishingTimeTicks = 0;
+    private static float fishingTimeSeconds = 0;
+    private static float averageFishingTimeSeconds = 0;
+    private static float averageFishingTimeSumSeconds = 0;
+    private static int averageFishingTimeCount = 0;
+
     @Override
     public void onInitializeClient() {
         try {
             Files.deleteIfExists(FISHING_TIME_FILE_PATH);
             Files.writeString(
                     FISHING_TIME_FILE_PATH,
-                    "seconds / ticks\n",
+                    "seconds / ticks   ;   average time sec / average count\n",
                     CREATE_NEW
             );
         } catch (IOException e) {
@@ -30,11 +36,24 @@ public class FishingTimeClient implements ClientModInitializer {
         }
     }
 
-    public static void writeFishingTimeToFile(double fishingTimeSeconds, long fishingTimeTicks) {
+    public static void fishingFinishedWithTime(int newFishingTimeTicks) {
+        fishingTimeTicks = newFishingTimeTicks;
+        averageFishingTimeCount++;
+
+        fishingTimeSeconds = fishingTimeTicks / 20f;
+
+        averageFishingTimeSumSeconds += fishingTimeSeconds;
+        averageFishingTimeSeconds = averageFishingTimeSumSeconds / averageFishingTimeCount;
+
+        FishingTimeClient.writeFishingTimeToFile();
+        FishingTimeClient.writeFishingTimeToHud();
+    }
+
+    public static void writeFishingTimeToFile() {
         try {
             Files.writeString(
                     FISHING_TIME_FILE_PATH,
-                    "\n" + fishingTimeSeconds + " / " + fishingTimeTicks,
+                    "\n" + fishingTimeSeconds + " / " + fishingTimeTicks + "   ;   " + averageFishingTimeSeconds + " / " + averageFishingTimeCount,
                     APPEND
             );
         } catch (IOException e) {
@@ -42,7 +61,7 @@ public class FishingTimeClient implements ClientModInitializer {
         }
     }
 
-    public static void writeFishingTimeToHud(double fishingTimeSeconds) {
-        MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of("Fishing finished in " + fishingTimeSeconds + " seconds."));
+    public static void writeFishingTimeToHud() {
+        MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of("Fishing finished in " + fishingTimeSeconds + " seconds. Average per " + averageFishingTimeCount + " throws is " + averageFishingTimeSeconds + " seconds."));
     }
 }
