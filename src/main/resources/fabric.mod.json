@@ -32,6 +32,7 @@
 	],
 	"accessWidener": "fishing-time.accesswidener",
 	"depends": {
-		"minecraft": "${supportedMinecraftVersions}"
+		"minecraft": "${supportedMinecraftVersions}",
+		"fabric-api": "*"
 	}
 }

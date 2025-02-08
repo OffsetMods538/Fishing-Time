@@ -1,10 +1,12 @@
 package top.offsetmonkey538.fishingtime;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import org.apache.commons.lang3.StringUtils;
+import top.offsetmonkey538.fishingtime.command.FishingTimeCommand;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,6 +37,8 @@ public class FishingTimeClient implements ClientModInitializer {
         } catch (IOException e) {
             LOGGER.error("Could not write to file '" + FISHING_TIME_FILE_PATH + "'!", e);
         }
+
+        ClientCommandRegistrationCallback.EVENT.register(FishingTimeCommand::register);
     }
 
     public static void fishingFinishedWithTime(int newFishingTimeTicks) {
@@ -50,7 +54,7 @@ public class FishingTimeClient implements ClientModInitializer {
         FishingTimeClient.writeFishingTimeToHud();
     }
 
-    public static void writeFishingTimeToFile() {
+    private static void writeFishingTimeToFile() {
         try {
             Files.writeString(
                     FISHING_TIME_FILE_PATH,
@@ -69,7 +73,13 @@ public class FishingTimeClient implements ClientModInitializer {
         }
     }
 
-    public static void writeFishingTimeToHud() {
+    private static void writeFishingTimeToHud() {
         MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.of("Fishing finished in " + fishingTimeSeconds + " seconds. Average per " + averageFishingTimeCount + " throws is " + averageFishingTimeSeconds + " seconds."));
+    }
+
+    public static void resetAverage() {
+        averageFishingTimeSeconds = 0;
+        averageFishingTimeSumSeconds = 0;
+        averageFishingTimeCount = 0;
     }
 }
