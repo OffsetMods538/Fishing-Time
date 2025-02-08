@@ -1,7 +1,11 @@
 package top.offsetmonkey538.fishingtime.mixin.client;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.data.DataTracker;
+import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.projectile.FishingBobberEntity;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
@@ -9,61 +13,51 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Slice;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import top.offsetmonkey538.fishingtime.FishingTimeClient;
 
 @Mixin(FishingBobberEntity.class)
 public abstract class FishingBobberEntityMixin extends Entity {
+
+    @Shadow private boolean caughtFish;
+
     public FishingBobberEntityMixin(EntityType<?> type, World world) {
         super(type, world);
     }
 
-    @Shadow
-    private boolean caughtFish;
-
-    @Unique
-    private boolean fishingTime$isFishing;
     @Unique
     private int fishingTime$fishingTimeTicks;
-    @Unique
-    private double fishingTime$averageTimeSeconds;
-    @Unique
-    private int fishingTime$averageCount;
-
-    @Inject(
-            method = "tick",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/util/math/Vec3d;multiply(DDD)Lnet/minecraft/util/math/Vec3d;"
-            )
-    )
-    private void fishingTime$storeFishingStartTime(CallbackInfo ci) {
-        if (!getWorld().isClient) return;
-        fishingTime$isFishing = true;
-        fishingTime$fishingTimeTicks = 0;
-    }
 
     @Inject(
             method = "tick",
             at = @At("HEAD")
     )
     private void fishingTime$incrementFishingTime(CallbackInfo ci) {
-        if (fishingTime$isFishing) fishingTime$fishingTimeTicks++;
+        if (!caughtFish) fishingTime$fishingTimeTicks++;
     }
 
-    @Inject(
-            method = "tick",
+    @WrapOperation(
+            method = "onTrackedDataSet",
             at = @At(
                     value = "INVOKE",
-                    target = "Ljava/lang/Math;max(II)I"
+                    target = "Lnet/minecraft/entity/data/DataTracker;get(Lnet/minecraft/entity/data/TrackedData;)Ljava/lang/Object;"
+            ),
+            slice = @Slice(
+                    from = @At(
+                            value = "FIELD",
+                            target = "Lnet/minecraft/entity/projectile/FishingBobberEntity;CAUGHT_FISH:Lnet/minecraft/entity/data/TrackedData;"
+                    )
             )
     )
-    private void fishingTime$finishMeasuringFishingTime(CallbackInfo ci) {
-        if (!caughtFish || !getWorld().isClient || !fishingTime$isFishing) return;
+    private <T> T fishingTime$detectFishCaught(DataTracker instance, TrackedData<T> data, Operation<T> original) {
+        final T value = original.call(instance, data);
+        if (!getWorld().isClient) return value;
+        if (value instanceof Boolean boolValue && !boolValue) return value;
 
         FishingTimeClient.fishingFinishedWithTime(fishingTime$fishingTimeTicks);
-
         fishingTime$fishingTimeTicks = 0;
-        fishingTime$isFishing = false;
+
+        return value;
     }
 }
