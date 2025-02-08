@@ -4,6 +4,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,7 +29,7 @@ public class FishingTimeClient implements ClientModInitializer {
             Files.deleteIfExists(FISHING_TIME_FILE_PATH);
             Files.writeString(
                     FISHING_TIME_FILE_PATH,
-                    "seconds / ticks   ;   average time sec / average count\n",
+                    "seconds / ticks   |   average time sec / average count\n",
                     CREATE_NEW
             );
         } catch (IOException e) {
@@ -53,7 +54,14 @@ public class FishingTimeClient implements ClientModInitializer {
         try {
             Files.writeString(
                     FISHING_TIME_FILE_PATH,
-                    "\n" + fishingTimeSeconds + " / " + fishingTimeTicks + "   ;   " + averageFishingTimeSeconds + " / " + averageFishingTimeCount,
+                    "\n" +
+                            StringUtils.center(String.valueOf(fishingTimeSeconds), "seconds".length()) +
+                            " / " +
+                            StringUtils.center(String.valueOf(fishingTimeTicks), "ticks".length()) +
+                            "   |   " +
+                            StringUtils.center(String.valueOf(averageFishingTimeSeconds), "average time sec".length()) +
+                            " / " +
+                            StringUtils.center(String.valueOf(averageFishingTimeCount), "average count".length()),
                     APPEND
             );
         } catch (IOException e) {
